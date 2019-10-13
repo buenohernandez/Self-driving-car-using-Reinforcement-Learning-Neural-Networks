@@ -1,0 +1,117 @@
+from game_cart import Car
+
+import gym
+import numpy as np
+import random
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
+from keras.optimizers import Adam
+
+
+import pygame
+
+
+import numpy as np
+from random import randint
+from time import time, sleep
+
+from collections import deque
+
+from threading import Thread
+
+# Deep Q-learning Agent
+class DQNAgent:
+
+    def __init__(self, state_size, action_size):
+        self.state_size = state_size
+        self.action_size = action_size
+        self.memory = deque(maxlen=5000)
+        self.gamma = 0.9    # discount rate
+        self.epsilon = 1.0  # exploration rate
+        self.epsilon_min = 0.01
+        self.epsilon_decay = 0.995
+        self.learning_rate = 0.001
+        self.model = self._build_model()
+
+    def _build_model(self):
+        # Neural Net for Deep-Q learning Model
+        model = Sequential()
+        model.add(Dense(32, input_dim=self.state_size, activation='relu'))
+        model.add(Dense(self.action_size, activation='linear'))
+        model.compile(loss='mse',
+                      optimizer=Adam(lr=self.learning_rate))
+        return model
+
+    def remember(self, state, action, reward, new_state, done):
+        self.memory.append([state, action, reward, new_state, done])
+
+    def act(self, state):
+        self.epsilon *= self.epsilon_decay
+        self.epsilon = max(self.epsilon_min, self.epsilon)
+        if np.random.random() < self.epsilon:
+            return random.randrange(self.action_size)
+        return np.argmax(self.model.predict(state)[0])
+
+    def replay(self, batch_size):
+
+        if len(self.memory) < batch_size:
+            return
+
+        samples = random.sample(self.memory, batch_size)
+        
+        for sample in samples:
+            state, action, reward, new_state, done = sample
+            target = self.model.predict(state)
+            if done:
+                target[0][action] = reward
+            else:
+                Q_future = max(self.model.predict(new_state)[0])
+                target[0][action] = reward + Q_future * self.gamma
+            self.model.fit(state, target, epochs=1, verbose=0)
+       
+    def save_model(self, fn):
+        
+        self.model.save(fn)
+
+
+
+if __name__ == "__main__":
+    # initialize gym environment and the agent
+
+    env = Car()
+
+    agent = DQNAgent(env.state_size,env.act_size)
+
+    trials = 100
+    # Iterate the game
+    for step in range(trials):
+        # reset state in the beginning of each game
+        
+        start = time()
+
+        state, _, _ = env.run()
+
+        for trial in range(512):
+
+            action = agent.act(state)
+            next_state, reward, done  = env.run(action)
+            
+            print(step, trial, next_state, reward, action)
+            
+            agent.remember(state, action, reward, next_state, done)            
+                        
+            agent.replay(32)         
+
+            pressed = pygame.key.get_pressed()
+
+            if pressed[pygame.K_RIGHT]: pygame.quit()
+
+            state = next_state
+            
+
+    print("Time elapsed: ", time() - start)
+    agent.save_model("success.model")
+
+
+
+
