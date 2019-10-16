@@ -32,7 +32,7 @@ pygame.font.init() # you have to call this at the start,
 myfont = pygame.font.SysFont('Comic Sans MS', 30)
 
 def rot_center(image, angle):
-    """rotate an image while keeping its center and size"""
+  
     orig_rect = image.get_rect()
     rot_image = pygame.transform.rotate(image, angle)
     rot_rect = orig_rect.copy()
