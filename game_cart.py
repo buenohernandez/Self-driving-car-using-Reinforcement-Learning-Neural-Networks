@@ -283,10 +283,9 @@ if __name__ == "__main__":
         if pressed[pygame.K_DOWN]: act = "BRAKE"
         if pressed[pygame.K_RIGHT]: act = 2
         if pressed[pygame.K_LEFT]: act = 1
+        if pressed[pygame.K_q]: pygame.quit()
 
         state, reward, done = env.run(act, lag/2)
-
-        pos = pygame.mouse.get_pos()
 
         print(state,reward, done)
         clock.tick(60)
