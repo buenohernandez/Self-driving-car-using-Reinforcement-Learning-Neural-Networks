@@ -11,10 +11,10 @@ from random import randint
 from time import time, sleep
 from collections import deque
 
+
 class DQNAgent:
 
-    def __init__(self, state_size, action_size):
-        
+    def __init__(self, state_size, action_size):        
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=5000)
@@ -26,84 +26,73 @@ class DQNAgent:
         self.model = self._build_model()
 
         
-    def _build_model(self):
-        
+    def _build_model(self):        
         model = Sequential()
         model.add(Dense(32, input_dim=self.state_size, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
-        model.compile(loss='mse',optimizer=Adam(lr=self.learning_rate))
-        
+        model.compile(loss='mse',optimizer=Adam(lr=self.learning_rate))        
         return model
-
-    def remember(self, state, action, reward, new_state, done):
         
+
+    def remember(self, state, action, reward, new_state, done):        
         self.memory.append([state, action, reward, new_state, done])
 
         
-    def act(self, state):
-        
+    def act(self, state):        
         self.epsilon *= self.epsilon_decay
-        self.epsilon = max(self.epsilon_min, self.epsilon)
-        
-        if np.random.random() < self.epsilon:
+        self.epsilon = max(self.epsilon_min, self.epsilon)    
             
+        if np.random.random() < self.epsilon:            
             return random.randrange(self.action_size)
-        
+                    
         return np.argmax(self.model.predict(state)[0])
     
     
-    def replay(self, batch_size):
-
-        if len(self.memory) < batch_size:
-            
-            return
-
-        samples = random.sample(self.memory, batch_size)
+    def replay(self, batch_size):    
+    
+        if len(self.memory) < batch_size:   return
         
-        for sample in samples:
-            
+        samples = random.sample(self.memory, batch_size)   
+             
+        for sample in samples:            
             state, action, reward, new_state, done = sample
             target = self.model.predict(state)
             
-            if done:
-                
-                target[0][action] = reward
-                
-            else:
-                
+            if done:                
+                target[0][action] = reward                
+            else:                
                 Q_future = max(self.model.predict(new_state)[0])
                 target[0][action] = reward + Q_future * self.gamma
                 
             self.model.fit(state, target, epochs=1, verbose=0)
        
-    def save_model(self, fn):
-        
+       
+    def save_model(self, fn):        
         self.model.save(fn)
+        
 
 if __name__ == "__main__":
 
     env = Car()
     agent = DQNAgent(env.state_size,env.act_size)
     trials = 100
-
+    
     for step in range(trials):
-
         state, _, _ = env.run()
-
+        
         for trial in range(512):
-
             action = agent.act(state)
             next_state, reward, done  = env.run(action)            
             print(step, trial, next_state, reward, action)            
             agent.remember(state, action, reward, next_state, done)                        
             agent.replay(32)      
-            pressed = pygame.key.get_pressed()
+            pressed = pygame.key.get_pressed()    
+                    
             if pressed[pygame.K_RIGHT]: pygame.quit()
-
+            
             state = next_state
             
     agent.save_model("success.model")
-
 
 
 
