@@ -14,36 +14,31 @@ import os
 
 path = os.getcwd()
 
+
 class DQNAgent:
 
-    def __init__(self, state_size, action_size):
-        
+    def __init__(self, state_size, action_size):        
         self.state_size = state_size
         self.action_size = action_size
         self.model = self.load_trained_model()        
 
         
-    def build_model(self):
-        
+    def build_model(self):        
         model = Sequential()
         model.add(Dense(32, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(self.action_size, activation='linear'))
+        model.add(Dense(self.action_size, activation='linear'))        
         return model  
     
         
-    def act(self, state):
-    
+    def act(self, state):    
         result = self.model.predict(state)[0].tolist()
-        result = result.index(max(result))
-        
+        result = result.index(max(result))        
         return result        
         
         
-    def load_trained_model(self):
-        
+    def load_trained_model(self):        
        model = self.build_model()
-       model.load_weights(path+"/success.model")
-       
+       model.load_weights(path+"/success.model")       
        return model
        
        
@@ -53,19 +48,16 @@ if __name__ == "__main__":
     agent = DQNAgent(env.state_size,env.act_size)
     trials = 200
 
-    for step in range(trials):
-  
+    for step in range(trials):  
         state, _, _ = env.run()
-
-        for trial in range(512):
-        
+                
+        for trial in range(512):        
             action = agent.act(state)            
             next_state, reward, done  = env.run(action)    
-            state = next_state       
-                 
-            pressed = pygame.key.get_pressed()            
-            if pressed[pygame.K_q]: pygame.quit()            
-            
+            state = next_state                        
+            pressed = pygame.key.get_pressed()     
+                   
+            if pressed[pygame.K_q]: pygame.quit()      
+             
             clock.tick(60)
  
-
